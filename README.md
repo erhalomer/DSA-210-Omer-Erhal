@@ -1,10 +1,16 @@
-# DSA-210-Omer-Erhal
-
 # DSA 210 Project Proposal  
  Forecasting Future Sales Using Company Transaction Data  
 
 Name: Ömer erhal
 ID: 31032
+
+This project focuses on forecasting future sales using the company’s internal transaction records, which include both sales and purchase data 
+The main goal is to analyze how historical trends, customer behavior, and operational factors such as stock intake and pricing influence future sales volumes.  
+ the project seeks to answer:  
+ “Can we predict future sales performance based on historical purchase and sales behaviors?”
+
+The findings will support business planning, optimize inventory levels, and help the company better anticipate demand patterns in the iron and steel industry.  
+
 
 ---
 
@@ -48,7 +54,9 @@ Data preprocessing will include the following steps:
 
 1. Do past sales quantities contain predictive information about future sales?  
 2. Do changes in sales price significantly affect sales volume?  
-
+3. Does the purchase (stock intake) quantity affect sales performance after a lag period?
+4. Are there seasonal or periodic sales patterns throughout the year?
+5. How does the USD/TRY exchange rate affect the company’s sales volume and sales prices over time?
 ---
 
 5️- Hypotheses  
