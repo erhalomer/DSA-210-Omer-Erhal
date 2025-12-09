@@ -70,6 +70,158 @@ H₁₂: Purchase quantities significantly influence future sales.
 H₀₃: Sales price changes have no impact on sales volume.  
 H₁₃: Sales price changes significantly affect sales volume.
 
+2. Data Collection
+
+The dataset consists of two internal sources:
+
+- Company sales transaction records  
+- Company purchase (KÜTÜK) transaction records  
+
+Additionally, external macroeconomic data was collected:
+
+- Daily USD/TRY exchange rate history (2024–2025)
+
+Raw data cannot be shared publicly. Below are mock samples showing the structure of the dataset.
+
+Sales Data (Mock Example)
+
+| Tarih       | Müşteri     | Ürün_Tipi | Miktar (ton) | Fiyat (TL/ton) |
+|-------------|-------------|-----------|--------------|----------------|
+| 2024-02-03  | Müşteri_A   | KALIN     | 125.0        | 24800          |
+| 2024-02-03  | Müşteri_B   | INCE      | 42.5         | 25100          |
+| 2024-02-05  | Müşteri_C   | KALIN     | 350.0        | 24600          |
+
+Purchase Data (Mock Example)
+
+| Tarih       | Tedarikçi   | Ürün_Tipi  | Miktar (ton) | Fiyat (TL/ton) |
+|-------------|-------------|------------|--------------|----------------|
+| 2024-02-01  | Tedarikçi_X | YPK_KUTUK  | 200.0        | 8900           |
+| 2024-02-04  | Tedarikçi_Y | YPK_KUTUK  | 140.0        | 9050           |
+
+Data Cleaning Steps
+
+- Converted all date fields into datetime format  
+- Corrected numeric formatting (decimal inconsistencies)  
+- Normalized text fields (capitalization, trimming)  
+- Forward-filled missing sales prices    
+- Created daily and monthly aggregated tables  
+- Merged sales data with USD/TRY exchange rate  
+- Corrected an outlier entry (114000 tons → 114 tons)
+
+---
+
+4. Exploratory Data Analysis (EDA)
+
+Key findings from EDA:
+
+- Daily sales are irregular but show a weak monthly cycle  
+- İNCE product type dominates total sales  
+- TRY-based sale prices steadily increase over time  
+- TRY prices closely follow USD/TRY movements  
+- No visible relationship between price and sales quantity  
+- No visible relationship between purchases and sales  
+- Weak monthly seasonality exists (supports lag-30 hypothesis)
+
+These observations guided the hypothesis tests below.
+
+---
+
+5. Hypothesis Testing
+
+All hypotheses were evaluated using linear regression, Pearson correlation, and p-value significance testing.
+
+---
+
+Hypothesis 1: Past Sales → Future Sales
+
+Null Hypothesis (H01): Past sales quantities have no relationship with future sales.  
+Alternative Hypothesis (H11): Past sales quantities significantly affect future sales.
+
+Test Results:
+
+| Lag | Correlation | R2 | p-value | Interpretation |
+|-----|-------------|----|---------|----------------|
+| 7-day lag  | -0.1192 | 0.0142 | 0.0609 | Not significant |
+| 21-day lag | -0.0049 | 0.0000 | 0.9403 | No relationship |
+| 30-day lag | 0.1374  | 0.0189 | 0.0395 | Significant |
+
+Conclusion:  
+Only the 30-day lag is significant.  
+Past monthly sales help predict future sales.
+
+---
+
+Hypothesis 2: Purchases → Future Sales
+
+Null Hypothesis (H02): Purchase quantities do not affect future sales.  
+Alternative Hypothesis (H12): Purchase quantities significantly affect future sales.
+
+Daily Purchases → Future Sales:  
+Correlation = -0.0515, p = 0.4193 (not significant)
+
+Monthly Purchases → Next Month Sales:  
+Correlation = 0.3296, p = 0.3223 (not significant)
+
+Conclusion:  
+Purchases do not influence sales performance.
+
+---
+
+ Hypothesis 3: Price → Sales Quantity
+
+Null Hypothesis (H03): Sales price does not affect sales quantity.  
+Alternative Hypothesis (H13): Sales price significantly affects sales quantity.
+
+Results:  
+Correlation = -0.0180  
+p-value = 0.4913 (not significant)
+
+Conclusion:  
+Customers are not price-sensitive.
+
+---
+
+ Hypothesis 4a: USD/TRY → Sales Price
+
+Null Hypothesis (H04a): USD/TRY changes do not affect sales price.  
+Alternative Hypothesis (H14a): USD/TRY significantly affects sales price.
+
+Results:  
+Correlation = 0.3000  
+p-value = 0.000001 (significant)
+
+Conclusion:  
+TRY prices are strongly influenced by the USD/TRY exchange rate.
+
+---
+
+Hypothesis 4b: USD/TRY → Sales Quantity
+
+Null Hypothesis (H04b): USD/TRY has no effect on sales quantity.  
+Alternative Hypothesis (H14b): USD/TRY significantly affects sales quantity.
+
+Results:  
+Correlation = -0.0746  
+p-value = 0.2354 (not significant)
+
+Conclusion:  
+Sales volume is not affected by the exchange rate.
+
+---
+
+6. Summary of Findings
+
+- The only meaningful predictor of future sales is the past 30-day sales volume  
+- Price does not affect quantity  
+- Purchases do not affect sales  
+- USD/TRY strongly affects TRY prices  
+- USD/TRY does not affect quantity  
+- Weak monthly seasonality exists  
+
+
+
+
+
 
 
 
