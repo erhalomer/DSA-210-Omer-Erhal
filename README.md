@@ -32,8 +32,8 @@ Below are mock sample rows (non-real) for demonstration of the Data:
 
 | Date | Supplier | Product_Type | Quantity | Price |
 |------|-----------|--------------|-----------|--------|
-| 2024-06-14 | Supplier_X | SCRAP | 1500 | 9200 |
-| 2024-06-17 | Supplier_Y | SCRAP | 2000 | 9400 |
+| 2024-06-14 | Supplier_X | KÜTÜK | 1500 | 9200 |
+| 2024-06-17 | Supplier_Y | KÜTÜK | 2000 | 9400 |
 
 ---
 
@@ -85,18 +85,30 @@ Raw data cannot be shared publicly. Below are mock samples showing the structure
 
 Sales Data (Mock Example)
 
-| Tarih       | Müşteri     | Ürün_Tipi | Miktar (ton) | Fiyat (TL/ton) |
-|-------------|-------------|-----------|--------------|----------------|
-| 2024-02-03  | Müşteri_A   | KALIN     | 125.0        | 24800          |
-| 2024-02-03  | Müşteri_B   | INCE      | 42.5         | 25100          |
-| 2024-02-05  | Müşteri_C   | KALIN     | 350.0        | 24600          |
+Sales Data (Mock Example)
+
+| Date       | Customer    | Product_Type | Quantity | Price |
+|------------|-------------|--------------|----------|--------|
+| 2024-06-15 | Customer_A  | THICK        | 1200     | 14500 |
+| 2024-06-16 | Customer_B  | THIN         | 800      | 14850 |
 
 Purchase Data (Mock Example)
 
-| Tarih       | Tedarikçi   | Ürün_Tipi  | Miktar (ton) | Fiyat (TL/ton) |
-|-------------|-------------|------------|--------------|----------------|
-| 2024-02-01  | Tedarikçi_X | YPK_KUTUK  | 200.0        | 8900           |
-| 2024-02-04  | Tedarikçi_Y | YPK_KUTUK  | 140.0        | 9050           |
+| Date       | Supplier    | Product_Type | Quantity | Price |
+|------------|-------------|--------------|----------|--------|
+| 2024-06-14 | Supplier_X  | SCRAP        | 1500     | 9200  |
+| 2024-06-17 | Supplier_Y  | SCRAP        | 2000     | 9400  |
+
+Merged Sales + USD/TRY Exchange Rate Data (Mock Example)
+
+| Tarih       | Daily_Quantity (ton) | Daily_Price (TL/ton) | USD_TRY |
+|-------------|-----------------------|------------------------|---------|
+| 2024-11-01  | 5728.0                | 26528.57               | 34.3020 |
+| 2024-11-02  | 137.5                 | 26600.00               | 34.3020 |
+| 2024-11-04  | 145.0                 | 26600.00               | 34.3337 |
+| 2024-11-05  | 425.0                 | 26425.00               | 34.3118 |
+| 2024-11-06  | 357.5                 | 25757.14               | 34.1862 |
+
 
 Data Cleaning Steps
 
