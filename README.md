@@ -37,7 +37,7 @@ Below are mock sample rows (non-real) for demonstration of the Data:
 
 ---
 
-3- Data Cleaning and Preparation  
+3- Data Cleaning and Preparation and Graphs
 
 Data preprocessing will include the following steps:
 
@@ -47,6 +47,8 @@ Data preprocessing will include the following steps:
   - Price: Forward-fill (use previous valid value)  
   - Purchase quantity: Assume `0` for non-purchase days  
 - Normalize text fields (uppercase, stripped whitespace)
+- <img width="751" height="451" alt="image" src="https://github.com/user-attachments/assets/554b1fd5-fe64-4bcd-8251-6fd6b2ac2663" />
+
 
 ---
 
