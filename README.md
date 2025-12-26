@@ -48,6 +48,11 @@ Data preprocessing will include the following steps:
   - Purchase quantity: Assume `0` for non-purchase days  
 - Normalize text fields (uppercase, stripped whitespace)
 - <img width="751" height="451" alt="image" src="https://github.com/user-attachments/assets/554b1fd5-fe64-4bcd-8251-6fd6b2ac2663" />
+The boxplot of sales quantities indicates that the majority of transactions are concentrated below approximately 400–500 Tons, with the median located close to this lower range. In contrast, several observations exceed 1,000 units, and a small number of extreme values reach levels above 4,000 units. This substantial gap between typical sales volumes and maximum observed values demonstrates a strongly right-skewed distribution. Such a distribution is consistent with the iron and steel industry, where frequent low-volume sales coexist with occasional high-volume bulk orders, and therefore does not indicate a structural problem in the dataset.
+<img width="751" height="451" alt="image" src="https://github.com/user-attachments/assets/bc197bfa-4c6c-4161-a46b-e6968a268ded" />
+
+The boxplot of sales prices shows that the majority of transactions are concentrated within a narrow range of approximately 25,000 to 30,000 TRY, with the median located inside this interval. This indicates a relatively stable pricing structure for most sales. However, a small number of extreme outliers are observed, including one transaction exceeding 240,000 TRY and another close to zero. These values likely correspond to exceptional transactions or special pricing cases and do not represent the typical sales price level. Overall, the distribution is right-skewed and consistent with pricing behavior in the iron and steel industry.
+
 
 
 ---
