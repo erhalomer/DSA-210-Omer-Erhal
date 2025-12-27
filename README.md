@@ -239,7 +239,82 @@ Sales volume is not affected by the exchange rate.
 - Purchases do not affect sales  
 - USD/TRY strongly affects TRY prices  
 - USD/TRY does not affect quantity  
-- Weak monthly seasonality exists  
+- Weak monthly seasonality exists
+
+7. Machine Learning Methods and Results
+
+This section presents the machine learning methods applied to the dataset in order to evaluate the predictive performance of key variables and to complement the statistical hypothesis testing results.
+
+ Supervised Learning: Sales Forecasting
+Problem Definition
+
+The objective of the supervised learning task is to forecast future daily sales quantities using historical transaction data.
+The target variable is daily sales quantity, while input features include:
+
+Lagged sales quantities (1-day, 7-day, 14-day, 30-day lags)
+
+Rolling averages of sales quantities and prices (7-day, 30-day)
+
+Daily average sales price
+
+Daily purchase quantity
+
+Calendar features (day of week, day of month, month)
+
+To avoid data leakage, TimeSeriesSplit (5-fold) cross-validation was used instead of random train–test splits.
+
+Baseline Models
+
+Before applying machine learning models, simple baseline forecasts were evaluated:
+
+Baseline	MAE	RMSE
+Lag-1 (Yesterday = Today)	1032.12	1685.71
+Lag-30 (30 Days Ago = Today)	1050.11	1635.61
+
+These baselines provide reference error levels without any learning process.
+
+ML Model Performance (Horizon = 1 Day)
+Model	MAE	RMSE
+Gradient Boosting Regressor	846.20	1280.73
+Random Forest Regressor	892.95	1262.35
+Linear Regression	1554.82	2099.64
+
+Observation:
+Both ensemble-based models significantly outperform the baseline approaches. Gradient Boosting achieves the lowest MAE, indicating superior short-term forecasting performance.
+
+ML Model Performance (Horizon = 30 Days)
+Model	MAE	RMSE
+Random Forest Regressor	739.17	1024.80
+Gradient Boosting Regressor	767.24	1149.53
+Lag-30 Baseline	976.12	1636.97
+Linear Regression	2648.29	3398.05
+
+Observation:
+For longer-term forecasting, Random Forest provides the best performance, improving MAE by approximately 24% compared to the Lag-30 baseline.
+
+🔹 Unsupervised Learning: Customer Segmentation
+
+To explore purchasing behavior patterns, K-Means clustering (k = 4) was applied to customer-level features:
+
+Total purchased quantity
+
+Average sales price
+
+Number of transactions
+
+Number of active transaction days
+
+Cluster Summary
+Cluster	Customers	Avg Total Qty	Avg Price (TRY)	Avg Transactions	Avg Active Days
+0	54	276.51	27757.58	3.56	2.85
+1	6	5875.75	26467.72	81.17	62.17
+2	65	456.80	25039.80	4.20	3.57
+3	20	6435.52	26081.48	24.95	22.95
+
+Interpretation:
+The clustering results reveal distinct customer segments, ranging from small-volume occasional buyers to high-volume and highly frequent customers. This segmentation provides additional insight into demand structure and customer behavior.
+
+   
 
 
 
