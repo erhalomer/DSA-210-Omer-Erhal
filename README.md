@@ -52,6 +52,10 @@ The boxplot of sales quantities indicates that the majority of transactions are 
 <img width="751" height="451" alt="image" src="https://github.com/user-attachments/assets/bc197bfa-4c6c-4161-a46b-e6968a268ded" />
 
 The boxplot of sales prices shows that the majority of transactions are concentrated within a narrow range of approximately 25,000 to 30,000 TRY, with the median located inside this interval. This indicates a relatively stable pricing structure for most sales. However, a small number of extreme outliers are observed, including one transaction exceeding 240,000 TRY and another close to zero. These values likely correspond to exceptional transactions or special pricing cases and do not represent the typical sales price level. Overall, the distribution is right-skewed and consistent with pricing behavior in the iron and steel industry.
+<img width="752" height="452" alt="image" src="https://github.com/user-attachments/assets/29be2672-768a-4734-93ed-38a7f8a768cb" />
+The scatter plot of sales price versus sales quantity shows that most transactions are concentrated within a narrow price range of approximately 22,000 to 32,000 TRY across a wide range of quantities, extending up to around 1,500 Tons. No clear upward or downward trend is observed, and the data points form a largely horizontal cloud. Although a small number of extreme outliers are present, these observations are rare and do not affect the overall pattern. This visual evidence supports the statistical finding of a very weak and insignificant relationship between sales price and sales quantity.
+
+
 
 
 
