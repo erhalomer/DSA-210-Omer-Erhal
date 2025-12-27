@@ -245,29 +245,46 @@ Sales volume is not affected by the exchange rate.
 
 This section presents the machine learning methods applied to the dataset in order to evaluate the predictive performance of key variables and to complement the statistical hypothesis testing results.
 
-🔹 Supervised Learning: Sales Forecasting
+Supervised Learning: Sales Forecasting
+
+Supervised regression models were used to forecast future daily sales quantities based on historical transaction data. The feature set includes lagged sales quantities, rolling averages, daily average prices, purchase quantities, and calendar-based variables. To prevent data leakage, all models were evaluated using 5-fold TimeSeriesSplit cross-validation.
+
 Baseline Models
 Baseline	MAE	RMSE
 Lag-1 (Yesterday = Today)	1032.12	1685.71
 Lag-30 (30 Days Ago = Today)	1050.11	1635.61
+
+These baselines represent simple forecasting strategies without any learning mechanism and serve as reference points for model comparison.
+
 ML Model Performance (Horizon = 1 Day)
 Model	MAE	RMSE
 Gradient Boosting Regressor	846.20	1280.73
 Random Forest Regressor	892.95	1262.35
 Linear Regression	1554.82	2099.64
+
+For one-day-ahead forecasting, ensemble-based models significantly outperform the baseline approaches. Gradient Boosting achieves the lowest MAE, while Random Forest produces the lowest RMSE.
+
 ML Model Performance (Horizon = 30 Days)
 Model	MAE	RMSE
 Random Forest Regressor	739.17	1024.80
 Gradient Boosting Regressor	767.24	1149.53
 Lag-30 Baseline	976.12	1636.97
 Linear Regression	2648.29	3398.05
-🔹 Unsupervised Learning: Customer Segmentation
+
+For longer-term forecasting, Random Forest demonstrates the best predictive performance, improving MAE by approximately 24% compared to the Lag-30 baseline.
+
+Unsupervised Learning: Customer Segmentation
+
+To explore structural patterns in customer purchasing behavior, K-Means clustering (k = 4) was applied to customer-level aggregated features, including total sales quantity, average price, number of transactions, and number of active days.
+
+Cluster Summary
 Cluster	Customers	Avg Total Qty	Avg Price (TRY)	Avg Transactions	Avg Active Days
 0	54	276.51	27757.58	3.56	2.85
 1	6	5875.75	26467.72	81.17	62.17
 2	65	456.80	25039.80	4.20	3.57
 3	20	6435.52	26081.48	24.95	22.95
 
+The clustering results reveal distinct customer segments ranging from small-volume, infrequent buyers to high-volume, highly active customers. This segmentation provides additional insight into demand structure and customer behavior.
    
 
 
