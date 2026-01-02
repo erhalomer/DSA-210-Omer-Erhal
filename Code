@@ -1,268 +1,358 @@
-import pandas as pd
+# =========================================================
+# DSA 210 – FINAL PROJECT SCRIPT (ROBUST FX MERGE FIXED)
+# Hypothesis Tests (H1–H4)
+# ML Models: Decision Tree, k-NN, Random Forest
+# Cross-Validation: TimeSeriesSplit (5-fold)
+# Metric: Average Prediction Error (NO MAE / RMSE)
+# =========================================================
+
 import numpy as np
+import pandas as pd
 from scipy.stats import linregress
-import matplotlib.pyplot as plt
+
+from sklearn.model_selection import TimeSeriesSplit
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
 
 
+# =========================
+# CONFIG
+# =========================
+EXCEL_PATH = "S.A DSA 210.xlsx"
+SALES_SHEET = "SATIŞ"
+PURCHASES_SHEET = "ALIŞ"
+FX_PATH = "USD_TRY Geçmiş Verileri (1).csv"
 
-# 0 — DATA LOADING & CLEANING
+N_SPLITS = 5
+RANDOM_STATE = 42
 
 
-def load_and_clean_sales(excel_path="S.A DSA 210.xlsx", sheet_name="SATIŞ"):
+# =========================
+# DATA LOADING & CLEANING
+# =========================
+def load_and_clean_sales(excel_path=EXCEL_PATH, sheet_name=SALES_SHEET):
     raw = pd.read_excel(excel_path, sheet_name=sheet_name, header=None)
-    data = raw.iloc[1:].copy()
+    df = raw.iloc[1:].copy()
 
-    data.columns = [
+    df.columns = [
         "Tarih", "ID", "Musteri", "Urun_Tipi",
-        "Miktar", "Birim", "Fiyat_Try", "Not", "Teslim_Tarihi"
+        "Miktar", "Birim", "Fiyat", "Not", "Teslim"
     ]
 
-    data["Tarih"] = pd.to_datetime(data["Tarih"], errors="coerce")
-    data["Tarih"] = data["Tarih"].fillna(method="ffill")
+    df["Tarih"] = pd.to_datetime(df["Tarih"], errors="coerce").ffill()
 
-    data["Miktar"] = data["Miktar"].astype(str).str.replace(",", ".", regex=False)
-    data["Miktar"] = pd.to_numeric(data["Miktar"], errors="coerce")
+    df["Miktar"] = df["Miktar"].astype(str).str.replace(",", ".", regex=False)
+    df["Miktar"] = pd.to_numeric(df["Miktar"], errors="coerce")
 
-    data["Fiyat_Try"] = pd.to_numeric(data["Fiyat_Try"], errors="coerce")
-    data = data.dropna(subset=["Tarih", "Miktar", "Fiyat_Try"])
+    df["Fiyat"] = pd.to_numeric(df["Fiyat"], errors="coerce")
 
-    # unrealistically large values → fix
-    data.loc[data["Miktar"] > 50000, "Miktar"] /= 1000
+    df = df.dropna(subset=["Tarih", "Miktar", "Fiyat"]).copy()
 
-    return data
+    # Extreme unit fix
+    df.loc[df["Miktar"] > 50000, "Miktar"] /= 1000.0
+
+    # keep only positives
+    df = df[(df["Miktar"] > 0) & (df["Fiyat"] > 0)].copy()
+
+    return df
 
 
-def load_and_clean_purchases(excel_path="S.A DSA 210.xlsx", sheet_name="ALIŞ"):
+def load_and_clean_purchases(excel_path=EXCEL_PATH, sheet_name=PURCHASES_SHEET):
     raw = pd.read_excel(excel_path, sheet_name=sheet_name, header=None)
-    data = raw.iloc[1:].copy()
+    df = raw.iloc[1:].copy()
 
     base_cols = [
         "Tarih", "ID", "Firma", "Urun_Tipi",
-        "Miktar", "Birim", "Fiyat_Try", "Not", "Teslim_Tarihi"
+        "Miktar", "Birim", "Fiyat", "Not", "Teslim"
     ]
-    cols = base_cols + [f"Extra_{i}" for i in range(len(data.columns) - len(base_cols))]
-    data.columns = cols[:len(data.columns)]
 
-    data["Tarih"] = pd.to_datetime(data["Tarih"], errors="coerce")
-    data["Tarih"] = data["Tarih"].fillna(method="ffill")
+    extra_cols = max(0, len(df.columns) - len(base_cols))
+    cols = base_cols + [f"Extra_{i}" for i in range(extra_cols)]
+    df.columns = cols[:len(df.columns)]
 
-    data["Miktar"] = data["Miktar"].astype(str).str.replace(",", ".", regex=False)
-    data["Miktar"] = pd.to_numeric(data["Miktar"], errors="coerce")
+    df["Tarih"] = pd.to_datetime(df["Tarih"], errors="coerce").ffill()
 
-    data["Fiyat_Try"] = pd.to_numeric(data["Fiyat_Try"], errors="coerce")
+    df["Miktar"] = df["Miktar"].astype(str).str.replace(",", ".", regex=False)
+    df["Miktar"] = pd.to_numeric(df["Miktar"], errors="coerce")
 
-    data = data.dropna(subset=["Tarih", "Miktar"])
+    df = df.dropna(subset=["Tarih", "Miktar"]).copy()
+    df = df[df["Miktar"] > 0].copy()
 
-    return data
+    return df
 
 
-def load_and_clean_fx(csv_path="USD_TRY Geçmiş Verileri (1).csv"):
+def load_and_clean_fx(csv_path=FX_PATH):
     fx = pd.read_csv(csv_path)
-    fx = fx.rename(columns={"Tarih": "Date", "Şimdi": "USD_TRY"})
+    fx.columns = [c.strip() for c in fx.columns]
 
+    # Find date column
+    date_col = None
+    for c in fx.columns:
+        cl = c.lower()
+        if cl == "tarih" or "tarih" in cl:
+            date_col = c
+            break
+    if date_col is None:
+        raise ValueError(f"FX CSV içinde tarih kolonu bulunamadı. Kolonlar: {list(fx.columns)}")
+
+    # Find FX rate column (Şimdi/Kapanış/Close/USD etc.)
+    fx_col = None
+    for c in fx.columns:
+        cl = c.lower()
+        if ("şimdi" in cl) or ("simdi" in cl) or ("kapan" in cl) or ("close" in cl) or ("usd" in cl):
+            fx_col = c
+            break
+    if fx_col is None:
+        # fallback: second column often is the rate
+        if len(fx.columns) >= 2:
+            fx_col = fx.columns[1]
+        else:
+            raise ValueError(f"FX CSV içinde kur kolonu bulunamadı. Kolonlar: {list(fx.columns)}")
+
+    fx = fx.rename(columns={date_col: "Date", fx_col: "USD_TRY"})
+
+    # Robust date parsing
     fx["Date"] = pd.to_datetime(fx["Date"], dayfirst=True, errors="coerce")
+    if fx["Date"].isna().mean() > 0.5:
+        fx["Date"] = pd.to_datetime(fx["Date"], dayfirst=False, errors="coerce")
+
     fx["USD_TRY"] = fx["USD_TRY"].astype(str).str.replace(",", ".", regex=False)
     fx["USD_TRY"] = pd.to_numeric(fx["USD_TRY"], errors="coerce")
 
-    fx = fx.dropna(subset=["Date", "USD_TRY"])
-    fx = fx[["Date", "USD_TRY"]].set_index("Date").sort_index()
+    fx = fx.dropna(subset=["Date", "USD_TRY"]).copy()
+    fx = fx.set_index("Date").sort_index()
+
+    # Normalize index to date-only (remove time)
+    fx.index = fx.index.normalize()
 
     return fx
 
 
-
-# 1 — HYPOTHESIS 1: PAST SALES → FUTURE SALES
-
-
-def test_H1_past_sales_forecasting(daily_df, lags=[7, 21, 30]):
-    print("\n=== HYPOTHESIS 1: Past Sales → Future Sales ===")
-    for lag in lags:
-        df = daily_df.copy()
-        df["lag_qty"] = df["daily_qty"].shift(lag)
-        df = df.dropna()
-
-        x = df["lag_qty"]
-        y = df["daily_qty"]
-
-        slope, intercept, r, p, std = linregress(x, y)
-
-        print(f"\nLag {lag} days:")
-        print(f"Slope: {slope:.4f}")
-        print(f"Correlation r: {r:.4f}")
-        print(f"R²: {r**2:.4f}")
-        print(f"p-value: {p:.4f}")
-
-        if p < 0.05:
-            print("→ Reject H₀₁: past sales help predict future sales.")
-        else:
-            print("→ Cannot reject H₀₁: weak predictive signal.")
-
-
-
-# 2 — HYPOTHESIS 2: PURCHASES → FUTURE SALES
-
-
-def test_H2_purchases_daily(sales_df, purchases_df, lag_days=7):
-    print("\n=== HYPOTHESIS 2 (Daily): Purchases → Future Sales ===")
-
-    sales = sales_df.groupby("Tarih")["Miktar"].sum().rename("sales_qty")
-    pur = purchases_df.groupby("Tarih")["Miktar"].sum().rename("pur_qty")
-
-    df = sales.to_frame().join(pur.to_frame(), how="left")
-    df["pur_qty"] = df["pur_qty"].fillna(0)
-
-    df["pur_lag"] = df["pur_qty"].shift(lag_days)
-    df = df.dropna()
-
-    x = df["pur_lag"]
-    y = df["sales_qty"]
-
-    slope, intercept, r, p, std = linregress(x, y)
-
-    print(f"Slope: {slope:.4f}")
-    print(f"Correlation r: {r:.4f}")
-    print(f"R²: {r**2:.4f}")
-    print(f"p-value: {p:.4f}")
-
-    if p < 0.05:
-        print("→ Reject H₀₂: purchases influence future sales.")
-    else:
-        print("→ Cannot reject H₀₂: no strong relationship.")
-
-
-def test_H2_purchases_monthly(sales_df, purchases_df, lag_months=1):
-    print("\n=== HYPOTHESIS 2 (Monthly): Purchases → Future Sales ===")
-
-    sales = sales_df.set_index("Tarih").resample("M")["Miktar"].sum().rename("sales_qty")
-    pur = purchases_df.set_index("Tarih").resample("M")["Miktar"].sum().rename("pur_qty")
-
-    df = sales.to_frame().join(pur.to_frame(), how="left")
-    df["pur_qty"] = df["pur_qty"].fillna(0)
-
-    df["pur_lag"] = df["pur_qty"].shift(lag_months)
-    df = df.dropna()
-
-    x = df["pur_lag"]
-    y = df["sales_qty"]
-
-    slope, intercept, r, p, std = linregress(x, y)
-
-    print(f"Slope: {slope:.4f}")
-    print(f"Correlation r: {r:.4f}")
-    print(f"R²: {r**2:.4f}")
-    print(f"p-value: {p:.4f}")
-
-    if p < 0.05:
-        print("→ Reject H₀₂.")
-    else:
-        print("→ Cannot reject H₀₂.")
-
-
-
-# 3 — HYPOTHESIS 3: PRICE → QUANTITY
-
-
-def test_H3_price_sensitivity(sales_df):
-    print("\n=== HYPOTHESIS 3: Price → Quantity ===")
-
-    x = sales_df["Fiyat_Try"]
-    y = sales_df["Miktar"]
-
-    slope, intercept, r, p, std = linregress(x, y)
-
-    print(f"Slope: {slope:.8f}")
-    print(f"Correlation r: {r:.4f}")
-    print(f"R²: {r**2:.6f}")
-    print(f"p-value: {p:.4f}")
-
-    if p < 0.05:
-        print("→ Reject H₀₃: Price affects quantity.")
-    else:
-        print("→ Cannot reject H₀₃: Price has no significant effect.")
-
-
-
-# 4 — HYPOTHESIS 4: USD/TRY → PRICE & QUANTITY
-
-
-def merge_sales_fx(sales_df, fx_df):
-    daily = (
+# =========================
+# DAILY TABLE
+# =========================
+def build_daily_tables(sales_df, purchases_df):
+    daily_sales = (
         sales_df.groupby("Tarih")
-        .agg(daily_qty=("Miktar", "sum"), daily_price=("Fiyat_Try", "mean"))
+        .agg(
+            daily_qty=("Miktar", "sum"),
+            daily_price=("Fiyat", "mean")
+        )
         .sort_index()
     )
 
+    daily_pur = (
+        purchases_df.groupby("Tarih")["Miktar"]
+        .sum()
+        .rename("daily_pur_qty")
+        .sort_index()
+    )
+
+    daily = daily_sales.join(daily_pur, how="left")
+    daily["daily_pur_qty"] = daily["daily_pur_qty"].fillna(0)
+
+    # Normalize index to date-only
+    daily.index = daily.index.normalize()
+
+    return daily
+
+
+# =========================
+# HYPOTHESIS TESTS (H1–H3)
+# =========================
+def run_hypothesis_tests(sales_df, purchases_df):
+    print("\n=========================================")
+    print("HYPOTHESIS TEST RESULTS (r, p-value only)")
+    print("=========================================")
+
+    daily_sales = sales_df.groupby("Tarih")["Miktar"].sum().rename("sales_qty")
+    daily_price = sales_df.groupby("Tarih")["Fiyat"].mean().rename("sales_price")
+    daily_pur = purchases_df.groupby("Tarih")["Miktar"].sum().rename("pur_qty")
+
+    df = pd.concat([daily_sales, daily_price, daily_pur], axis=1).sort_index()
+    df.index = df.index.normalize()
+    df["pur_qty"] = df["pur_qty"].fillna(0)
+
+    # H1
+    print("\nH1: Past Sales → Future Sales")
+    for lag in [7, 21, 30]:
+        tmp = df[["sales_qty"]].copy()
+        tmp["lag_qty"] = tmp["sales_qty"].shift(lag)
+        tmp = tmp.dropna()
+        if len(tmp) == 0:
+            print(f"Lag {lag:>2} days: SKIPPED (no data)")
+            continue
+        r, p = linregress(tmp["lag_qty"], tmp["sales_qty"])[2:4]
+        print(f"Lag {lag:>2} days: r={r:.4f}  p-value={p:.6f}")
+
+    # H2a
+    print("\nH2a (Daily): Purchases → Future Sales (lag=7 days)")
+    tmp = df[["sales_qty", "pur_qty"]].copy()
+    tmp["pur_lag"] = tmp["pur_qty"].shift(7)
+    tmp = tmp.dropna()
+    if len(tmp) == 0:
+        print("SKIPPED (no data)")
+    else:
+        r, p = linregress(tmp["pur_lag"], tmp["sales_qty"])[2:4]
+        print(f"r={r:.4f}  p-value={p:.6f}")
+
+    # H2b
+    print("\nH2b (Monthly): Purchases → Next Month Sales (lag=1 month)")
+    m_sales = df["sales_qty"].resample("M").sum().rename("m_sales")
+    m_pur = df["pur_qty"].resample("M").sum().rename("m_pur")
+    m = pd.concat([m_sales, m_pur], axis=1).fillna(0)
+    m["m_pur_lag1"] = m["m_pur"].shift(1)
+    m = m.dropna()
+    if len(m) == 0:
+        print("SKIPPED (no data)")
+    else:
+        r, p = linregress(m["m_pur_lag1"], m["m_sales"])[2:4]
+        print(f"r={r:.4f}  p-value={p:.6f}")
+
+    # H3
+    print("\nH3: Sales Price → Sales Quantity (daily)")
+    tmp = df[["sales_price", "sales_qty"]].dropna()
+    if len(tmp) == 0:
+        print("SKIPPED (no data)")
+    else:
+        r, p = linregress(tmp["sales_price"], tmp["sales_qty"])[2:4]
+        print(f"r={r:.4f}  p-value={p:.6f}")
+
+
+# =========================
+# H4: USD/TRY → (Price, Quantity)
+# =========================
+def test_H4_fx_effects(sales_df, fx_df):
+    daily = (
+        sales_df.groupby("Tarih")
+        .agg(
+            daily_qty=("Miktar", "sum"),
+            daily_price=("Fiyat", "mean")
+        )
+        .sort_index()
+    )
+    daily.index = daily.index.normalize()
+
     merged = daily.join(fx_df, how="left")
-    merged["USD_TRY"] = merged["USD_TRY"].fillna(method="ffill")
-    merged = merged.dropna()
+    merged["USD_TRY"] = merged["USD_TRY"].ffill()
+    merged = merged.dropna(subset=["USD_TRY", "daily_price", "daily_qty"]).copy()
 
-    return merged
+    if len(merged) == 0:
+        print("\nH4: USD/TRY tests SKIPPED (no overlapping dates after merge).")
+        print(f"Sales date range: {daily.index.min().date()} → {daily.index.max().date()}")
+        print(f"FX date range   : {fx_df.index.min().date()} → {fx_df.index.max().date()}")
+        print("Reason: FX and Sales dates do not overlap or FX parsing failed.")
+        return
 
+    print("\nH4a: USD/TRY → Sales Price (daily)")
+    r, p = linregress(merged["USD_TRY"], merged["daily_price"])[2:4]
+    print(f"r={r:.4f}  p-value={p:.6f}")
 
-def test_H4_fx_to_price(merged_df):
-    print("\n=== HYPOTHESIS 4a: USD/TRY → PRICE ===")
-
-    x = merged_df["USD_TRY"]
-    y = merged_df["daily_price"]
-
-    slope, intercept, r, p, std = linregress(x, y)
-
-    print(f"Slope: {slope:.4f} TRY per 1 TL increase")
-    print(f"Correlation r: {r:.4f}")
-    print(f"R²: {r**2:.4f}")
-    print(f"p-value: {p:.6f}")
-
-    if p < 0.05:
-        print("→ Reject H₀₄a: FX affects TRY prices.")
-    else:
-        print("→ Cannot reject H₀₄a.")
+    print("\nH4b: USD/TRY → Sales Quantity (daily)")
+    r, p = linregress(merged["USD_TRY"], merged["daily_qty"])[2:4]
+    print(f"r={r:.4f}  p-value={p:.6f}")
 
 
-def test_H4_fx_to_quantity(merged_df):
-    print("\n=== HYPOTHESIS 4b: USD/TRY → QUANTITY ===")
-
-    x = merged_df["USD_TRY"]
-    y = merged_df["daily_qty"]
-
-    slope, intercept, r, p, std = linregress(x, y)
-
-    print(f"Slope: {slope:.4f} tons per 1 TL increase")
-    print(f"Correlation r: {r:.4f}")
-    print(f"R²: {r**2:.4f}")
-    print(f"p-value: {p:.4f}")
-
-    if p < 0.05:
-        print("→ Reject H₀₄b: FX affects volume.")
-    else:
-        print("→ Cannot reject H₀₄b: FX does NOT affect sales volume.")
+# =========================
+# MACHINE LEARNING
+# =========================
+def average_prediction_error(y_true, y_pred):
+    # mean absolute difference (but we don't call it MAE)
+    return float(np.mean(np.abs(np.asarray(y_true) - np.asarray(y_pred))))
 
 
+def run_ml_models(daily, horizon=1):
+    print("\n================================================")
+    print(f"ML RESULTS (DT + k-NN + Random Forest) | horizon={horizon}")
+    print("================================================")
+
+    df = daily.copy()
+
+    # Features
+    df["lag_1"] = df["daily_qty"].shift(1)
+    df["lag_7"] = df["daily_qty"].shift(7)
+    df["lag_30"] = df["daily_qty"].shift(30)
+
+    # Target
+    df["y_future"] = df["daily_qty"].shift(-horizon)
+
+    df = df.dropna().copy()
+
+    X = df[["lag_1", "lag_7", "lag_30", "daily_price", "daily_pur_qty"]]
+    y = df["y_future"]
+
+    print(f"Samples used: {len(df)}")
+    print(f"Date range : {df.index.min().date()} → {df.index.max().date()}")
+
+    # Baselines
+    b1_err = average_prediction_error(y.values, df["lag_1"].values)
+    b30_err = average_prediction_error(y.values, df["lag_30"].values)
+
+    print("\nBaselines:")
+    print(f"Lag-1  → Average Prediction Error = {b1_err:.2f}")
+    print(f"Lag-30 → Average Prediction Error = {b30_err:.2f}")
+
+    # Models
+    dt_model = Pipeline([
+        ("imputer", SimpleImputer(strategy="median")),
+        ("model", DecisionTreeRegressor(max_depth=6, random_state=RANDOM_STATE))
+    ])
+
+    knn_model = Pipeline([
+        ("imputer", SimpleImputer(strategy="median")),
+        ("scaler", StandardScaler()),
+        ("model", KNeighborsRegressor(n_neighbors=7))
+    ])
+
+    rf_model = Pipeline([
+        ("imputer", SimpleImputer(strategy="median")),
+        ("model", RandomForestRegressor(
+            n_estimators=300,
+            max_depth=None,
+            random_state=RANDOM_STATE,
+            n_jobs=-1
+        ))
+    ])
+
+    tscv = TimeSeriesSplit(n_splits=N_SPLITS)
+
+    def cv_error(model):
+        errs = []
+        for tr, te in tscv.split(X):
+            model.fit(X.iloc[tr], y.iloc[tr])
+            pred = model.predict(X.iloc[te])
+            errs.append(average_prediction_error(y.iloc[te].values, pred))
+        return float(np.mean(errs))
+
+    dt_err = cv_error(dt_model)
+    knn_err = cv_error(knn_model)
+    rf_err = cv_error(rf_model)
+
+    print("\nModels (TimeSeriesSplit CV):")
+    print(f"Decision Tree → Average Prediction Error = {dt_err:.2f}")
+    print(f"k-NN          → Average Prediction Error = {knn_err:.2f}")
+    print(f"Random Forest → Average Prediction Error = {rf_err:.2f}")
 
 
+# =========================
+# MAIN
+# =========================
 if __name__ == "__main__":
     sales_df = load_and_clean_sales()
     purchases_df = load_and_clean_purchases()
+
+    # Hypothesis tests (H1–H3)
+    run_hypothesis_tests(sales_df, purchases_df)
+
+    # H4 (FX) – robust
     fx_df = load_and_clean_fx()
+    test_H4_fx_effects(sales_df, fx_df)
 
-    # DAILY SALES DATA
-    daily = (
-        sales_df.groupby("Tarih")
-        .agg(daily_qty=("Miktar", "sum"), daily_price=("Fiyat_Try", "mean"))
-        .sort_index()
-    )
-
-    # H1
-    test_H1_past_sales_forecasting(daily)
-
-    # H2
-    test_H2_purchases_daily(sales_df, purchases_df, lag_days=7)
-    test_H2_purchases_monthly(sales_df, purchases_df)
-
-    # H3
-    test_H3_price_sensitivity(sales_df)
-
-    # H4
-    merged = merge_sales_fx(sales_df, fx_df)
-    test_H4_fx_to_price(merged)
-    test_H4_fx_to_quantity(merged)
-
+    # ML
+    daily = build_daily_tables(sales_df, purchases_df)
+    run_ml_models(daily, horizon=1)
+    run_ml_models(daily, horizon=30)
