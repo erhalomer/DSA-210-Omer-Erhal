@@ -241,7 +241,7 @@ Sales volume is not affected by the exchange rate.
 - USD/TRY does not affect quantity  
 - Weak monthly seasonality exists
 
- 6. Machine Learning Methods
+ 7. Machine Learning Methods
 
 To complement statistical analysis, supervised machine learning methods covered in the course were applied:
 
@@ -255,7 +255,7 @@ Models were evaluated using **TimeSeriesSplit (5-fold cross-validation)**. Perfo
 
 ---
 
- 7. Machine Learning Results
+ 8. Machine Learning Results
 
 Horizon = 1 Day
 
@@ -285,7 +285,7 @@ For longer-term forecasting, k-NN provides the strongest performance, indicating
 
 ---
 
-8. Discussion
+9. Discussion
 
 The numerical results demonstrate that although individual lagged variables do not exhibit strong linear correlations with future sales, combining multiple lagged features within non-linear machine learning models significantly improves forecasting accuracy.
 
@@ -295,7 +295,7 @@ These findings confirm that ensemble and similarity based methods outperform sim
 
 ---
 
-9. Conclusion
+10. Conclusion
 
 - Past sales quantities do not show statistically significant linear relationships with future sales at daily lags  
 - Monthly purchase quantities strongly influence next-month sales (r = 0.5903, p ≈ 0.0000)  
