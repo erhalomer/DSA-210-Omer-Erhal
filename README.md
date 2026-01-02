@@ -161,16 +161,15 @@ Null Hypothesis (H01): Past sales quantities have no relationship with future sa
 Alternative Hypothesis (H11): Past sales quantities significantly affect future sales.
 
 Test Results:
-
-| Lag | Correlation | R2 | p-value | Interpretation |
-|-----|-------------|----|---------|----------------|
-| 7-day lag  | -0.1192 | 0.0142 | 0.0609 | Not significant |
-| 21-day lag | -0.0049 | 0.0000 | 0.9403 | No relationship |
-| 30-day lag | 0.1374  | 0.0189 | 0.0395 | Significant |
+| Lag | Correlation | p-value | Interpretation |
+|-----|-------------|---------|----------------|
+| 7-day lag  | -0.1026 | 0.1093 | Not significant |
+| 21-day lag | -0.0231 | 0.7266 | Not significant |
+| 30-day lag | 0.0475  | 0.4809 | Not significant |
 
 Conclusion:  
-Only the 30-day lag is significant.  
-Past monthly sales help predict future sales.
+None of the tested daily lag values show a statistically significant linear relationship with future sales.
+
 
 ---
 
@@ -234,7 +233,7 @@ Sales volume is not affected by the exchange rate.
 
 6. Summary of Findings
 
-- The only meaningful predictor of future sales is the past 30-day sales volume  
+-  Daily lagged sales quantities do not show statistically significant linear relationships with future sales
 - Price does not affect quantity  
 - Purchases do not affect sales  
 - USD/TRY strongly affects TRY prices  
