@@ -241,41 +241,69 @@ Sales volume is not affected by the exchange rate.
 - USD/TRY does not affect quantity  
 - Weak monthly seasonality exists
 
-Machine Learning Results – Horizon = 1 Day
+ 6. Machine Learning Methods
 
-For one-day-ahead forecasting, simple baseline approaches produce relatively high prediction errors. The Lag-1 baseline yields an average prediction error of 1032.12, while the Lag-30 baseline yields 1050.11.
+To complement statistical analysis, supervised machine learning methods covered in the course were applied:
 
-Machine learning models substantially improve upon these baselines. The Decision Tree model reduces the average prediction error to 853.25, and the k-NN model further improves performance with an error of 843.78. The Random Forest model achieves the best short-term performance with an average prediction error of 767.25, representing a clear improvement over both the baselines and the single Decision Tree model.
+- Decision Tree Regression
+- k-Nearest Neighbors (k-NN) Regression
+- Random Forest Regression
 
-Machine Learning Results – Horizon = 30 Days
+Input features included lagged sales quantities (1, 7, and 30 days), daily average sales price, and daily purchase quantity.
 
-For 30-day-ahead forecasting, the Lag-1 baseline produces an average prediction error of 1021.97, while the Lag-30 baseline yields 976.12.
+Models were evaluated using **TimeSeriesSplit (5-fold cross-validation)**. Performance was assessed using **Average Prediction Error**, defined as the average absolute difference between predicted and actual sales values.
 
-All machine learning models outperform these baselines. The Decision Tree model achieves an average prediction error of 878.78, while the k-NN model provides the strongest performance with an error of 730.20. The Random Forest model also improves upon the baselines, producing an average prediction error of 792.90, although it does not outperform k-NN at this longer horizon.
+---
 
-Overall Discussion
+ 7. Machine Learning Results
 
-The numerical results demonstrate that although individual lagged variables do not show strong linear correlations with future sales, combining multiple lagged features within non-linear machine learning models significantly improves forecasting accuracy.
+Horizon = 1 Day
 
-In particular, the Random Forest model reduces prediction error by approximately 26% compared to the Lag-1 baseline for one-day-ahead forecasts (from 1032.12 to 767.25). For longer-term forecasting, k-NN reduces the average prediction error by approximately 25% compared to the Lag-30 baseline (from 976.12 to 730.20).
+| Model | Average Prediction Error |
+|----|----|
+| Lag-1 Baseline | 1032.12 |
+| Lag-30 Baseline | 1050.11 |
+| Decision Tree | 853.25 |
+| k-NN | 843.78 |
+| **Random Forest** | **767.25** |
 
-These improvements confirm that non-linear and ensemble-based methods are more effective than simple linear or rule-based approaches for capturing the underlying structure of sales dynamics in this dataset.
+Random Forest achieves the best short-term forecasting performance, substantially improving upon both baseline rules and the single Decision Tree model.
 
-Final Conclusion
+---
 
-Past sales quantities do not exhibit statistically significant linear relationships with future sales at daily lags
+ Horizon = 30 Days
 
-Monthly purchase quantities strongly influence next-month sales (r = 0.5903, p ≈ 0.0000)
+| Model | Average Prediction Error |
+|----|----|
+| Lag-1 Baseline | 1021.97 |
+| Lag-30 Baseline | 976.12 |
+| Decision Tree | 878.78 |
+| **k-NN** | **730.20** |
+| Random Forest | 792.90 |
 
-Sales prices do not significantly affect sales volume in the short term
+For longer-term forecasting, k-NN provides the strongest performance, indicating that monthly sales patterns are effectively captured by similarity-based methods.
 
-Decision Tree, k-NN, and Random Forest models consistently outperform lag-based baselines
+---
 
-Random Forest provides the best short-term forecasting performance (average prediction error = 767.25)
+8. Discussion
 
-k-NN achieves the best long-term (30-day) forecasting performance (average prediction error = 730.20)
+The numerical results demonstrate that although individual lagged variables do not exhibit strong linear correlations with future sales, combining multiple lagged features within non-linear machine learning models significantly improves forecasting accuracy.
 
-Overall, the inclusion of Random Forest as an ensemble extension of Decision Trees strengthens the analysis and provides additional evidence that machine learning methods covered in the DSA 210 course can be effectively applied to real-world industrial sales forecasting problems.
+Random Forest reduces the average prediction error by approximately 26% compared to the Lag-1 baseline for one-day-ahead forecasts (from 1032.12 to 767.25). For 30 day ahead forecasts, k-NN reduces the average prediction error by approximately 25% compared to the Lag-30 baseline (from 976.12 to 730.20).
+
+These findings confirm that ensemble and similarity based methods outperform simple linear or rule based approaches in this dataset.
+
+---
+
+9. Conclusion
+
+- Past sales quantities do not show statistically significant linear relationships with future sales at daily lags  
+- Monthly purchase quantities strongly influence next-month sales (r = 0.5903, p ≈ 0.0000)  
+- Sales prices do not significantly affect sales volume in the short term  
+- Decision Tree, k-NN, and Random Forest models outperform lag-based baselines  
+- Random Forest provides the best short-term forecasting performance  
+- k-NN achieves the best long-term (30-day) forecasting performance  
+
 
 
 
