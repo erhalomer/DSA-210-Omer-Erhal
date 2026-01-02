@@ -1,11 +1,3 @@
-# =========================================================
-# DSA 210 – FINAL PROJECT SCRIPT (ROBUST FX MERGE FIXED)
-# Hypothesis Tests (H1–H4)
-# ML Models: Decision Tree, k-NN, Random Forest
-# Cross-Validation: TimeSeriesSplit (5-fold)
-# Metric: Average Prediction Error (NO MAE / RMSE)
-# =========================================================
-
 import numpy as np
 import pandas as pd
 from scipy.stats import linregress
