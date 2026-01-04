@@ -296,12 +296,10 @@ These findings confirm that ensemble and similarity based methods outperform sim
 
 10. Conclusion
 
-- Past sales quantities do not show statistically significant linear relationships with future sales at daily lags  
-- Monthly purchase quantities strongly influence next-month sales (r = 0.5903, p ≈ 0.0000)  
-- Sales prices do not significantly affect sales volume in the short term  
-- Decision Tree, k-NN, and Random Forest models outperform lag-based baselines  
-- Random Forest provides the best short-term forecasting performance  
-- k-NN achieves the best long-term (30-day) forecasting performance  
+The purpose of this project was to understand whether future sales performance can be predicted using historical company transaction data and to identify which operational and economic factors meaningfully influence sales behavior. The results show that daily sales dynamics in the iron and steel industry are highly volatile and cannot be explained through simple linear relationships alone. While short-term linear dependencies between past and future sales are weak, meaningful patterns emerge at appropriate time scales and through non-linear modeling approaches. In particular, the strong relationship between monthly purchase quantities and next-month sales highlights the importance of inventory planning for medium-term sales performance. Additionally, the findings confirm that sales volume is largely price-inelastic within the observed range, while exchange rate fluctuations are primarily reflected in prices rather than quantities. Machine learning models such as Decision Tree, k-NN, and Random Forest successfully capture these complex patterns and substantially outperform simple lag-based baselines. Overall, this project demonstrates how combining statistical analysis with machine learning can support more informed demand forecasting, inventory planning, and pricing strategies in real-world industrial settings.
+
+IMPORTANT NOTE
+Due to the commercially sensitive nature of the company’s transaction data, the number and level of detail of visualizations and plots included in this project were intentionally limited. This approach ensures the protection of confidential business information while still allowing meaningful exploratory data analysis and interpretation of the underlying sales patterns.
 
 
 
