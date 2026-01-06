@@ -1,4 +1,4 @@
-# DSA 210 Project Proposal  
+# DSA 210 Project 
  Forecasting Future Sales Using Company Transaction Data  
 
 Name: Ömer erhal
