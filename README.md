@@ -102,9 +102,8 @@ In particular, Random Forest achieved the best short-term forecasting performanc
 
 5. Limitations and Future Work
 
-This project has several limitations. First, the dataset is limited to a single company and a specific time period, which may restrict generalizability. Second, due to data confidentiality concerns, the number and level of detail of visualizations were intentionally limited, which constrained deeper exploratory analysis. Additionally, external factors such as customer-specific attributes, market demand indicators, and production constraints were not available.
-
-Future work could extend this project by incorporating customer-level features, longer historical time spans, additional macroeconomic indicators, and alternative forecasting techniques such as classification-based demand segmentation or probabilistic forecasting models. With richer data, more advanced modeling approaches could further improve predictive performance and business insights.
+This project has several limitations. First, the dataset is limited to a single company and a specific time period, which may restrict generalizability. Second, due to data confidentiality concerns, the number and level of detail of visualizations were intentionally limited, which constrained deeper exploratory analysis. 
+Future work could extend this project by incorporating customer-level features, longer historical time spans, additional macroeconomic indicators. With richer data, more advanced modeling approaches could further improve predictive performance and business insights.
 
 ---
 
